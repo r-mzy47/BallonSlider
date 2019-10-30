@@ -29,7 +29,7 @@ const Drager = props => {
   useEffect(() => {
 
     const interval = setInterval(() => {
-      if (new Date().getTime() - secState.time.getTime() > 200) {
+      if (new Date().getTime() - secState.time.getTime() > 100) {
         Animated.timing(
           props.acc,
           {
@@ -38,7 +38,6 @@ const Drager = props => {
             easing: Easing.linear
           }
         ).start()
-        // console.log("sdfdsfsdf")
       }
     }, 100)
     return () => clearInterval(interval)
@@ -76,15 +75,18 @@ const Drager = props => {
     } else if (newX > maxX) {
       newX = maxX
     }
+    // Acceleration calculation
     if (Math.abs(secState.location - newX) >= 1) {
       if (secState.time.getTime() - firstState.time.getTime() !== 0) {
         const v1 = (secState.location - firstState.location) / (secState.time.getTime() - firstState.time.getTime())
         const v2 = (newX - secState.location) / (new Date().getTime() - secState.time.getTime())
         var a = Math.abs(v2 / v1)
+        // Acceleration Scaling
         a = a < 0 ? 0 : a
         a = a > 5 ? 5 : a
-        console.log(a)
+        a = a * Math.abs((secState.location - firstState.location)) / 30
         if (props.acc._value < a) {
+          // Positive acceleration
           Animated.timing(
             props.acc,
             {
@@ -95,6 +97,7 @@ const Drager = props => {
           ).start()
         }
         else {
+          // Negative acceleration
           Animated.timing(
             props.acc,
             {
@@ -108,18 +111,16 @@ const Drager = props => {
     }
     setFirstState(secState)
     setSecondState(new DragerState(new Date(), newX))
-    // new Date().getMilliseconds()
     if (secState.location - firstState.location > 0)
       props.setIsLeftToRight(true)
     else
       props.setIsLeftToRight(false)
     props.setShowNumber(true)
-    // console.log(newX)
     x.setValue(newX)
     props.updateFilled(newX - minX)
   })
 
-  var opacity = props.acc.interpolate({
+  var dragerScale = props.acc.interpolate({
     inputRange: [0, 5],
     outputRange: [20, 50],
   })
@@ -135,8 +136,8 @@ const Drager = props => {
   })
 
   const selectedDrager = {
-    width: opacity,
-    height: opacity,
+    width: dragerScale,
+    height: dragerScale,
     borderRadius: radius,
     borderWidth: 2,
     borderColor: "#5030E3",
